@@ -1,20 +1,79 @@
 # Reproducible Research: Peer Assessment 1
-
+```{r setoptions, echo = TRUE}
+library(knitr)
+opts_chunk$set(echo = TRUE)
+```
 
 ## Loading and preprocessing the data
-
-
+```{r load_data}
+unzip("activity.zip")
+activity <- read.csv("activity.csv", sep = ",", header = TRUE, 
+                    stringsAsFactors=FALSE)
+activity$date <- as.Date(activity$date, "%Y-%m-%d")
+```
 
 ## What is mean total number of steps taken per day?
+1. Make a histogram of the total number of steps taken each day  
+2. Calculate and report the mean and median total number of steps taken per day  
+```{r total_daily_steps}
+dailysteps <- tapply(activity$steps, activity$date, sum, na.rm = TRUE)
+hist(dailysteps, 
+     col = "red",
+     main = "Histogram of the Total Number of Steps Taken Each Day", 
+     xlab = "Number of Steps",
+     ylab = "Number of Days")
 
-
+mean(dailysteps)
+median(dailysteps)
+```
 
 ## What is the average daily activity pattern?
+1. Make a time series plot of the 5-minute interval (x-axis) 
+and the average number of steps taken, averaged across all days (y-axis)  
+2. Which 5-minute interval, on average across all the days in the dataset, 
+contains the maximum number of steps?  
+```{r daily_pattern}
+avgsteps <- tapply(activity$steps, activity$interval, mean, na.rm = TRUE)
+intervals <- activity[activity$date == "2012-10-12", ]$interval
+plot(intervals, avgsteps, type = "l",
+     main = "Average Number of Steps Taken in 5-minute Intervals",
+     xlab = "Interval",
+     ylab = "Number of Steps")
 
-
+intervals[avgsteps == max(avgsteps)]
+```
 
 ## Imputing missing values
+1. Calculate and report the total number of missing values in the dataset  
 
+2. Devise a strategy for filling in all of the missing values in the dataset -- 
+in this case using mean for that 5-minute interval.   
 
+3. Create a new dataset that is equal to the original dataset but with the missing data filled in.  
+
+4. Make a histogram of the total number of steps taken each day and 
+Calculate and report the mean and median total number of steps taken per day. 
+```{r impute}
+dim(activity[!complete.cases(activity), ])[1]
+
+activity$impute <- activity$steps
+activity$impute[is.na(activity$impute)] <- avgsteps[match(activity$interval, intervals)]   
+
+dailysteps2 <- tapply(activity$impute, activity$date, sum)
+hist(dailysteps2, 
+     col = "red",
+     main = "Histogram of the Total Number of Steps After Imputing", 
+     xlab = "Number of Steps",
+     ylab = "Number of Days")
+
+mean(dailysteps2)
+median(dailysteps2)
+summary(activity)
+```
+Do these values differ from the estimates from the first part of the assignment?  
+- YES  
+
+What is the impact of imputing missing data on the estimates of the total daily number of steps?  
+- The density looks more like a normal density with the mean and the median being equal. 
 
 ## Are there differences in activity patterns between weekdays and weekends?

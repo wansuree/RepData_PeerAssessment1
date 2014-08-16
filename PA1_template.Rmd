@@ -77,3 +77,53 @@ What is the impact of imputing missing data on the estimates of the total daily 
 - The density looks more like a normal density with the mean and the median being equal. 
 
 ## Are there differences in activity patterns between weekdays and weekends?
+Use weekdays() function  
+
+1. Create a new factor variable in the dataset with two levels 
+– "weekday" and "weekend" indicating whether a given date 
+is a weekday or weekend day.
+
+2. Make a panel plot containing a time series plot (i.e. type = "l") 
+of the 5-minute interval (x-axis) and the average number of steps taken, 
+averaged across all weekday days or weekend days (y-axis).  
+```{r weekdays}
+activity$day <- as.factor(ifelse(weekdays(activity$date) %in% 
+                                 c("Saturday","Sunday"), "weekend", "weekday"))
+
+activity2 <- split(activity, activity$day)
+avg_weekday <- tapply(activity2$weekday$steps, activity2$weekday$interval, 
+                      mean, na.rm = TRUE)
+avg_weekend <- tapply(activity2$weekend$steps, activity2$weekend$interval, 
+                      mean, na.rm = TRUE)
+
+#act_weekday <- data.frame(cbind(avg_weekday, intervals, "weekday"))
+#act_weekend <- data.frame(cbind(avg_weekend, intervals, "weekend"))
+#names(act_weekday) <- c("steps", "interval", "day")
+#names(act_weekend) <- c("steps", "interval", "day")
+
+#activity3 <- rbind(act_weekday, act_weekend)
+
+par(mfrow = c(2, 1))
+plot(intervals, avg_weekday, type = "l",
+     main = "Weekday",
+     xlab = "Interval",
+     ylab = "Number of Steps")
+
+plot(intervals, avg_weekend, type = "l",
+     main = "Weekend",
+     xlab = "Interval",
+     ylab = "Number of Steps")
+
+
+a <- rbind(cbind(avg_weekday, intervals, "weekday"), 
+           cbind(avg_weekend, intervals, "weekend"))
+
+a <- data.frame(a)
+names(a) <- c("steps", "interval", "day")
+
+library(lattice)
+xyplot(steps ~ interval | day, data = a, layout = c(1, 2), 
+       type = "l")
+library(ggplot2)
+qplot(interval, steps, data = a, facets = .~day, type = "l")
+```
